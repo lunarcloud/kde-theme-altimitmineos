@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Simplified converter: always use contents/sample_hack.theme and produce "ALTIMIT MINE OS"
-set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONTENTS_DIR="$SCRIPT_DIR/contents"
@@ -11,8 +10,18 @@ THEME_ID="altimit_mine_os"
 # Display name for the theme
 THEME_NAME="ALTIMIT MINE OS"
 
+# shellcheck source=./script-dialog.sh
+pushd "$SCRIPT_DIR" || exit
+source "./script-dialog/script-dialog.sh"
+
+relaunch-if-not-visible
+
+# shellcheck disable=SC2034  # APP_NAME is used by script-dialog.sh functions
+APP_NAME="ALTIMIT MINE OS Theme Converter"
+
 if [[ ! -f "$INPUT_FILE" ]]; then
-    echo "Error: File not found: $INPUT_FILE"
+    ACTIVITY="File Not Found"
+    message-error "Input theme file not found: $INPUT_FILE"
     exit 1
 fi
 
@@ -23,8 +32,6 @@ PLASMA_DIR="$THEME_DIR/plasmarc"
 
 mkdir -p "$COLORS_DIR"
 mkdir -p "$PLASMA_DIR"
-
-echo "Converting $INPUT_FILE to Plasma 6 theme..."
 
 # Helper: RGB -> hex
 rgb_to_hex() {
@@ -166,26 +173,22 @@ ColorScheme=${THEME_NAME}
 name=${THEME_NAME}
 EOF
 
-# Paths
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONTENTS_DIR="$SCRIPT_DIR/contents"
-
 copy_wallpaper() {
   mkdir -p "$THEME_DIR/wallpapers"
   if [[ -f "$CONTENTS_DIR/wallpaper_original.jpg" ]]; then
-    cp -v "$CONTENTS_DIR/wallpaper_original.jpg" "$THEME_DIR/wallpapers/" || true
+    cp -v "$CONTENTS_DIR/wallpaper_original.jpg" "$THEME_DIR/wallpapers/" > /dev/null 2>&1 || true
     echo "Image=wallpapers/wallpaper_original.jpg" >> "$PLASMA_DIR/plasmarc"
     return
   fi
   if [[ -f "$CONTENTS_DIR/wallpaper.jpg" ]]; then
-    cp -v "$CONTENTS_DIR/wallpaper.jpg" "$THEME_DIR/wallpapers/" || true
+    cp -v "$CONTENTS_DIR/wallpaper.jpg" "$THEME_DIR/wallpapers/" > /dev/null 2>&1 || true
     echo "Image=wallpapers/wallpaper.jpg" >> "$PLASMA_DIR/plasmarc"
     return
   fi
   local found
   found=$(find "$CONTENTS_DIR" -maxdepth 1 -type f -iregex '.*\.(jpg|jpeg|png|bmp)' 2>/dev/null | head -n1 || true)
   if [[ -n "$found" ]]; then
-    cp -v "$found" "$THEME_DIR/wallpapers/" || true
+    cp -v "$found" "$THEME_DIR/wallpapers/" > /dev/null 2>&1 || true
     echo "Image=wallpapers/$(basename "$found")" >> "$PLASMA_DIR/plasmarc"
   fi
 }
@@ -196,7 +199,7 @@ package_sounds() {
   if [[ -d "$CONTENTS_DIR/Se" ]]; then
     find "$CONTENTS_DIR/Se" -type f \( -iname '*.ogg' -o -iname '*.mp3' -o -iname '*.wav' -o -iname '*.aif' \) -print0 | \
       while IFS= read -r -d '' sf; do
-        cp -v "$sf" "$SOUND_THEME_DIR/stereo/" || true
+        cp -v "$sf" "$SOUND_THEME_DIR/stereo/" > /dev/null 2>&1 || true
       done
   fi
   cat > "$SOUND_THEME_DIR/index.theme" << EOF
@@ -219,7 +222,7 @@ copy_icons() {
   if [[ -d "$CONTENTS_DIR/icon" ]]; then
     find "$CONTENTS_DIR/icon" -type f \( -iname '*.png' -o -iname '*.svg' \) -print0 | \
       while IFS= read -r -d '' ic; do
-        cp -v "$ic" "$THEME_DIR/icons/" || true
+        cp -v "$ic" "$THEME_DIR/icons/" > /dev/null 2>&1 || true
       done
   fi
   if compgen -G "$THEME_DIR/icons/*" > /dev/null; then
@@ -268,64 +271,57 @@ EOF
 install_package() {
   DEST_BASE="$HOME/.local/share/plasma/look-and-feel"
   mkdir -p "$DEST_BASE"
-  rm -rf "${DEST_BASE:?}/$THEME_ID"
+  rm -rf "${DEST_BASE:?}/$THEME_ID" 2>/dev/null || true
   cp -r "$THEME_DIR" "$DEST_BASE/" 2>/dev/null || true
+  # shellcheck disable=SC2034  # INSTALL_DIR is used by script-dialog.sh functions
   INSTALL_DIR="$DEST_BASE/$THEME_ID"
-  echo "✓ Theme installed (self-contained)!"
-  echo "  Look-and-feel package: $INSTALL_DIR"
-  echo "  README: $INSTALL_DIR/README.txt"
   if [[ -d "$THEME_DIR/sounds/$THEME_ID" ]]; then
     mkdir -p "$HOME/.local/share/sounds"
-    rm -rf "$HOME/.local/share/sounds/$THEME_ID"
+    rm -rf "$HOME/.local/share/sounds/$THEME_ID" 2>/dev/null || true
     cp -r "$THEME_DIR/sounds/$THEME_ID" "$HOME/.local/share/sounds/" 2>/dev/null || true
-    echo "  Sound theme installed: $HOME/.local/share/sounds/$THEME_ID"
   fi
 }
 
-# Run actions
-copy_wallpaper
-package_sounds
-copy_icons
-write_readme
+# shellcheck disable=SC2034  # ACTIVITY is used by script-dialog.sh functions
+ACTIVITY="Packaging theme..."
+{
+  progressbar_update 1
+  copy_wallpaper
+  progressbar_update 33
+  package_sounds
+  progressbar_update 66
+  copy_icons
+  progressbar_update 85
+  write_readme
+  progressbar_update 100
+  progressbar_finish
+} | progressbar
 
-echo "✓ Theme structure created in: $THEME_DIR/"
-echo "  - $COLORS_DIR/$THEME_ID.colors (color scheme)"
-echo "  - $PLASMA_DIR/plasmarc (plasma configuration)"
-echo "  - $THEME_DIR/metadata.json (metadata)"
-echo "  - $THEME_DIR/README.txt (usage)"
-
-# Parse flags: --install (auto), --no-install (skip), or prompt (default)
+# Parse command-line arguments
 install_action="prompt"
-for a in "$@"; do
-  case "$a" in
-    --install) install_action="yes" ;; 
-    --no-install) install_action="no" ;; 
-    install) install_action="yes" ;; 
+for arg in "$@"; do
+  case "$arg" in
+    --install) install_action="yes" ;;
+    --no-install) install_action="no" ;;
     *) ;;
   esac
 done
 
+# Handle installation based on action
 if [[ "$install_action" == "yes" ]]; then
-  echo "Installing theme to $HOME/.local/share/plasma/look-and-feel/ ..."
   install_package
-  echo "Done!"
+  message-info "Theme installed successfully to ~/.local/share/plasma/look-and-feel/"
   exit 0
 elif [[ "$install_action" == "no" ]]; then
-  echo "Skipping install. Theme files created in: $THEME_DIR/"
-  echo "To install later, copy the package to: $HOME/.local/share/plasma/look-and-feel/"
-  echo "Done!"
+  message-info "Theme package created in: $THEME_DIR/"
+  exit 0
+else
+  # Prompt user to install
+  if yesno "Would you like to install this theme to ~/.local/share/plasma/look-and-feel/?"; then
+    install_package
+    message-info "Theme installed successfully to ~/.local/share/plasma/look-and-feel/"
+  else
+    message-info "Theme package created in: $THEME_DIR/"
+  fi
   exit 0
 fi
-
-# Interactive prompt (default)
-read -p "Would you like to install this theme to ~/.local/share/plasma/look-and-feel/? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-  install_package
-  echo "Done!"
-  exit 0
-fi
-
-echo "Theme files created in: $THEME_DIR/"
-echo "To install, copy the package to: $HOME/.local/share/plasma/look-and-feel/"
-echo "Done!"

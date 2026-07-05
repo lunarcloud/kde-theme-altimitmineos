@@ -27,3 +27,4 @@ dist/
 # Ignore large binary asset folders if you prefer to keep them out of git
 # (uncomment to ignore)
 contents/
+altimit_mine_os/

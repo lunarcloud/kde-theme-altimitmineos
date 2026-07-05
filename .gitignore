@@ -1,0 +1,29 @@
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+
+# Generated theme packages (created by theme_convert.sh)
+ALTIMIT MINE OS/
+*look-and-feel/
+*.theme
+*.tar.gz
+*.zip
+
+# Temporary build/output
+build/
+dist/
+
+# local user data
+*.local
+
+# source iso
+*.iso
+
+# Ignore large binary asset folders if you prefer to keep them out of git
+# (uncomment to ignore)
+contents/

@@ -3,10 +3,9 @@ ALTIMIT MINE OS Conversion to KDE theming
 
 ## Download and Convert
 
-This repository expects the ALTIMIT MINE OS assets extracted under ./contents.
-Use the included extractor if you have the archive:
+This repository expects the ALTIMIT MINE OS ISO from https://archive.org/details/altimitmineos 
 
-1. Place the ISO or asset archive in the folder
+1. Place the ISO in the folder
 2. `./extract-altimitmineos.sh` (produces ./contents/)
 3. `./theme_convert.sh`
 

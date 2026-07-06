@@ -84,15 +84,12 @@ ACTIVITY="Extracting..."
 
   progressbar_update 80
 
-  # TODO create desktop theme you can select
-  #rm "$temp"/sample_hack.theme
-
-  progressbar_update 85
-
+  # Un-Mount disc
   udisksctl unmount -b "$loopdev"  >/dev/null 2>&1
 
   progressbar_update 90
 
+  # Remove the loopback device
   udisksctl loop-delete -b "$loopdev"  >/dev/null 2>&1
 
   progressbar_update 100

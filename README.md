@@ -1,6 +1,9 @@
 ALTIMIT MINE OS Conversion to KDE theming
 ------------------------------------------------------
 
+Now Linux users can enjoy this silly promotional disc theme.
+
+
 ## Download and Convert
 
 This repository expects the ALTIMIT MINE OS ISO from https://archive.org/details/altimitmineos 

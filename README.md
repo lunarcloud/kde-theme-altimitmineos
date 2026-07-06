@@ -3,23 +3,18 @@ ALTIMIT MINE OS Conversion to KDE theming
 
 Now Linux users can enjoy this silly promotional disc theme.
 
-## Linux dependencies
-```bash
-./install-tools.sh
-```
-
-This script detects your package manager ( for common distrols) and installs the packages for `7z`, ImageMagick, and `ffmpeg`.
-
 ## Download and Convert
 
 This repository expects the ALTIMIT MINE OS ISO from https://archive.org/details/altimitmineos 
+Then, run the scripts:
+```bash
+  ./install-tools.sh
+  ./extract-altimitmineos.sh
+  ./theme_convert.sh
+```
 
-1. Install tools for your distro: `./install-tools.sh`
-2. Place the ISO in the folder
-3. `./extract-altimitmineos.sh` (produces ./contents/)
-4. `./theme_convert.sh`
-
-**Output**: ./altimit_mine_os/ containing:
+## Outputs
+./altimit_mine_os/ containing:
 - colors/altimit_mine_os.colors (Breeze Light base + extracted theme colors)
 - icons/ (48x48/apps with custom icons, inherits Yaru/Adwaita/Breeze)
 - plasmarc/plasmarc (KDE Plasma configuration)

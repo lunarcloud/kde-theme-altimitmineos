@@ -10,25 +10,30 @@ This repository expects the ALTIMIT MINE OS ISO from https://archive.org/details
 3. `./theme_convert.sh`
 
 **Output**: ./altimit_mine_os/ containing:
-- colors/altimit_mine_os.colors
-- plasmarc/plasmarc
-- wallpapers/
-- icons/
-- sounds/altimit_mine_os/stereo/ (freedesktop sound theme)
-- metadata.json, metadata.desktop, README.txt
+- colors/altimit_mine_os.colors (Breeze Light base + extracted theme colors)
+- icons/ (48x48/apps with custom icons, inherits Yaru/Adwaita/Breeze)
+- plasmarc/plasmarc (KDE Plasma configuration)
+- sounds/altimit_mine_os/ (sound theme with KDE event mappings)
+- wallpapers/ (theme wallpaper + preview images)
+- wallpaper-package/altimit_mine_os/ (KDE wallpaper package for Wallpaper settings)
+- contents/splash/ (boot splash screen with fade animation)
+- metadata.json, metadata.desktop
 
 ## Install options
-- Interactive (default): `./theme_convert.sh` — prompts to install after creating files.
-- Auto-install: `./theme_convert.sh --install` — create and install to ~/.local/share/plasma/look-and-feel/
-- Skip install: `./theme_convert.sh --no-install` — create and do not install.
+- Interactive (default): `./theme_convert.sh` — prompts to install
+- Auto-install: `./theme_convert.sh --install` — create and install
+- Skip install: `./theme_convert.sh --no-install` — create only
+- Text UI: `INTERFACE=text ./theme_convert.sh --install` — avoid GUI hangs
 
-Manual install (if desired):
-  mkdir -p ~/.local/share/plasma/look-and-feel/
-  cp -r "altimit_mine_os" ~/.local/share/plasma/look-and-feel/
+Installed to:
+- `~/.local/share/plasma/look-and-feel/altimit_mine_os/`
+- `~/.local/share/wallpapers/altimit_mine_os/`
 
-Then open System Settings > Appearance > Look and Feel to activate.
+Then open System Settings > Appearance > Look and Feel to activate, or Wallpaper to pick **ALTIMIT MINE OS** directly.
 
 ## Notes
-- Update metadata.json/metadata.desktop to change author or version.
-- Assets must be provided by the user; this repo does not contain the original archive.
-- Script provided as-is; run shellcheck if modifying.
+- Color scheme uses Breeze Light defaults, overridden by extracted theme colors where available
+- Icon theme overrides system theme (Yaru/Adwaita/Breeze) only for mapped icons
+- Sound events mapped to KDE standard names (service-login, dialog-positive, message-new-instant, etc.)
+- Splash screen shows wallpaper with fading cube animation
+- Update metadata.json/metadata.desktop to change author or version
